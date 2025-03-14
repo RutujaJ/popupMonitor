@@ -36,7 +36,6 @@ function getCpuLoad() {
 
           // Average CPU usage across all processors
           const avgCpuUsage = totalCpuUsage / cpuInfo.numOfProcessors;
-          console.log(`Total CPU Load: ${avgCpuUsage.toFixed(2)}%`);
           resolve(avgCpuUsage.toFixed(2));
         }
       } else {
@@ -52,17 +51,14 @@ function getRtt() {
     if ('connection' in navigator) {
         const rtt = navigator.connection.rtt; // RTT in milliseconds
         // Update UI with RTT value
-        console.log(`RJ RTT ${rtt}`);
         return rtt;
     } else {
-        console.log('Network RTT not supported.');
         // document.getElementById('rtt-text').innerText = `RTT: N/A`;
     }
 }
 
 //////////// Send data to the content script
 function updateDataSnapshot(cpuUsage, rtt) {
-    console.log(`RJ update data received ${cpuUsage} ${rtt}`);
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (tabs.length > 0) {
           chrome.tabs.sendMessage(tabs[0].id, {
@@ -71,7 +67,6 @@ function updateDataSnapshot(cpuUsage, rtt) {
             rtt: rtt
           }, function (response) {
             if (chrome.runtime.lastError) {
-              console.warn('RJ Content script not running in active tab:', chrome.runtime.lastError.message);
             }
           });
        }
@@ -81,8 +76,6 @@ function updateDataSnapshot(cpuUsage, rtt) {
 //////////// report CPU usage and RTT to telemetry sheet 
 function reportTelemetry(jsonData) {
   
-  console.log(`RJ calling reportTelemetry ${jsonData.cpuUsage} ${jsonData.rttNow}`);
-
   const url = 'https://script.google.com/macros/s/AKfycbx2j_vkqn1p6oygLtCx7Fu2TAJV2bK4DBshxi3v_1T73UNOOf2uO2p3ZLy1QUR_cIJxvg/exec';
 
   // Send the POST request to the Apps Script Web App
@@ -95,10 +88,8 @@ function reportTelemetry(jsonData) {
   })
   .then(response => response.text())
   .then(data => {
-    console.log('Success:', data);  // Log the response from Google Apps Script
   })
   .catch((error) => {
-    console.error('Error:', error);
   });
 }
 
@@ -106,14 +97,11 @@ async function monitorSystem() {
   try {
     const rttNow = getRtt();
     const cpuUsageNow = await getCpuLoad(); // Wait for CPU usage value
-    console.log(`RJ monitorSystem cpuUsageNow: ${cpuUsageNow}, rttNow: ${rttNow}`);
     updateDataSnapshot(cpuUsageNow, rttNow);
     if (cpuUsageNow !== previousCpuUsage || rttNow !== previousRtt) {
       // Update previous values
       previousCpuUsage = cpuUsageNow;
       previousRtt = rttNow;
-      console.log(`RJ telemetry cpuUsageNow: ${cpuUsageNow}, rttNow: ${rttNow}`);
-
       const jsonData = {
         cpuUsageNow: cpuUsageNow,
         rttNow: rttNow
@@ -121,7 +109,6 @@ async function monitorSystem() {
       reportTelemetry(jsonData);
     }
   } catch (error) {
-    console.error("Error in monitorSystem:", error);
   }
 }
 

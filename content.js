@@ -1,5 +1,4 @@
 // content.js
-console.log("RJ content script loaded");
 
 // Function to toggle the floating div
 function toggleFloatingDiv(isVisible) {
@@ -124,7 +123,6 @@ function updateBar(cpuUsage, rtt) {
 // Listen for updates from the background script or storage
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   if (message.type === 'updateData') {
-    console.log(`RJ updateData cpuUsage RTT received listener ${message.cpuUsage} ${message.rtt}`);
     updateBar(message.cpuUsage, message.rtt);
   }
 });
